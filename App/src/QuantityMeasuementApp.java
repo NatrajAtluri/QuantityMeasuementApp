@@ -53,26 +53,38 @@ public class QuantityMeasuementApp {
         }
 
         /**
-         * Instance method: Add another QuantityLength
-         * Result is returned in the unit of THIS object
+         * UC6 method (default → result in this.unit)
          */
         public QuantityLength add(QuantityLength other) {
-            if (other == null) {
-                throw new IllegalArgumentException("Other quantity cannot be null");
-            }
-
-            double sumInFeet = this.toBaseUnit() + other.toBaseUnit();
-            double resultValue = this.unit.fromFeet(sumInFeet);
-
-            return new QuantityLength(resultValue, this.unit);
+            return addInternal(this, other, this.unit);
         }
 
         /**
-         * Static method: flexible addition with explicit target unit
+         * UC7 method (explicit target unit)
+         */
+        public QuantityLength add(QuantityLength other, LengthUnit targetUnit) {
+            return addInternal(this, other, targetUnit);
+        }
+
+        /**
+         * Static version (explicit target unit)
          */
         public static QuantityLength add(QuantityLength q1, QuantityLength q2, LengthUnit targetUnit) {
-            if (q1 == null || q2 == null || targetUnit == null) {
-                throw new IllegalArgumentException("Arguments cannot be null");
+            return addInternal(q1, q2, targetUnit);
+        }
+
+        /**
+         * Private DRY utility method for addition logic
+         */
+        private static QuantityLength addInternal(QuantityLength q1,
+                                                  QuantityLength q2,
+                                                  LengthUnit targetUnit) {
+
+            if (q1 == null || q2 == null) {
+                throw new IllegalArgumentException("Operands cannot be null");
+            }
+            if (targetUnit == null) {
+                throw new IllegalArgumentException("Target unit cannot be null");
             }
 
             double sumInFeet = q1.toBaseUnit() + q2.toBaseUnit();
@@ -102,69 +114,72 @@ public class QuantityMeasuementApp {
     }
 
     /**
-     * Demonstration methods
+     * Demo helpers
      */
-    public static void demonstrateAddition(QuantityLength q1, QuantityLength q2) {
-        QuantityLength result = q1.add(q2);
-        System.out.println("add(" + q1 + ", " + q2 + ") → " + result);
-    }
-
     public static void demonstrateAddition(QuantityLength q1, QuantityLength q2, LengthUnit target) {
         QuantityLength result = QuantityLength.add(q1, q2, target);
         System.out.println("add(" + q1 + ", " + q2 + ", " + target + ") → " + result);
     }
 
     /**
-     * Main method for testing UC6
+     * Main method for UC7 demo
      */
     public static void main(String[] args) {
 
-        // Same unit
+        // Explicit target = FEET
         demonstrateAddition(
                 new QuantityLength(1.0, LengthUnit.FEET),
-                new QuantityLength(2.0, LengthUnit.FEET)
-        );
-
-        // Cross-unit (Feet + Inches)
-        demonstrateAddition(
-                new QuantityLength(1.0, LengthUnit.FEET),
-                new QuantityLength(12.0, LengthUnit.INCHES)
-        );
-
-        // Cross-unit (Inches + Feet)
-        demonstrateAddition(
                 new QuantityLength(12.0, LengthUnit.INCHES),
-                new QuantityLength(1.0, LengthUnit.FEET)
+                LengthUnit.FEET
         );
 
-        // Yard + Feet
+        // Explicit target = INCHES
+        demonstrateAddition(
+                new QuantityLength(1.0, LengthUnit.FEET),
+                new QuantityLength(12.0, LengthUnit.INCHES),
+                LengthUnit.INCHES
+        );
+
+        // Explicit target = YARDS
+        demonstrateAddition(
+                new QuantityLength(1.0, LengthUnit.FEET),
+                new QuantityLength(12.0, LengthUnit.INCHES),
+                LengthUnit.YARDS
+        );
+
+        // Yard + Feet → Yards
         demonstrateAddition(
                 new QuantityLength(1.0, LengthUnit.YARDS),
-                new QuantityLength(3.0, LengthUnit.FEET)
+                new QuantityLength(3.0, LengthUnit.FEET),
+                LengthUnit.YARDS
         );
 
-        // Inches + Yard
+        // Inches + Yard → Feet
         demonstrateAddition(
                 new QuantityLength(36.0, LengthUnit.INCHES),
-                new QuantityLength(1.0, LengthUnit.YARDS)
+                new QuantityLength(1.0, LengthUnit.YARDS),
+                LengthUnit.FEET
         );
 
-        // Centimeter + Inch
+        // CM + Inch → CM
         demonstrateAddition(
                 new QuantityLength(2.54, LengthUnit.CENTIMETERS),
-                new QuantityLength(1.0, LengthUnit.INCHES)
+                new QuantityLength(1.0, LengthUnit.INCHES),
+                LengthUnit.CENTIMETERS
         );
 
         // Zero case
         demonstrateAddition(
                 new QuantityLength(5.0, LengthUnit.FEET),
-                new QuantityLength(0.0, LengthUnit.INCHES)
+                new QuantityLength(0.0, LengthUnit.INCHES),
+                LengthUnit.YARDS
         );
 
         // Negative values
         demonstrateAddition(
                 new QuantityLength(5.0, LengthUnit.FEET),
-                new QuantityLength(-2.0, LengthUnit.FEET)
+                new QuantityLength(-2.0, LengthUnit.FEET),
+                LengthUnit.INCHES
         );
     }
 }
